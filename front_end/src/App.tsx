@@ -11,9 +11,7 @@ function App() {
     <DAppProvider config={{ supportedChains: [ChainId.Kovan, ChainId.Rinkeby] }}>
       <Header />
       <Container maxWidth="md">
-        <div className="App">
-          Hi
-        </div>
+
         <Main />
       </Container>
     </DAppProvider>
