@@ -2,6 +2,7 @@ from scripts.helpful_scripts import LOCAL_BLOCKCHAIN_ENVIRONMENTS, get_account, 
 from brownie import network, exceptions
 import pytest
 from scripts.deploy import deploy_card_game_and_msc_token
+import time
 
 
 def test_set_price_feed_contract():
@@ -25,10 +26,9 @@ def test_bet_money(amount_staked):
     if network.show_active() not in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
         pytest.skip('Only for local testing!')
     account = get_account()
-    p1 = get_account(index=1)
     p2 = get_account(index=2)
-    p3 = get_account(index=3)
     p4 = get_account(index=4)
+    p6 = get_account(index=6)
     card_game, msc_token = deploy_card_game_and_msc_token()
     #Act
     # https://blog.smartdec.net/erc20-approve-issue-in-simple-words-a41aaf47bca6
@@ -46,7 +46,9 @@ def test_bet_money(amount_staked):
     msc_token.transfer(p2.address, amount_staked, {'from':account}) # msg.sender sends the amount to p2.address
     msc_token.transferFrom(account.address, p2.address, amount_staked*4,{'from':p2}) # ps can call this func as third party, cause p2 was approved
     msc_token.transfer(card_game.address, amount_staked, {'from':p2})
-    #card_game.sendMSCToken(amount_staked, {'from':account})
+    msc_token.transfer(p4.address, amount_staked*2, {'from':account})
+    msc_token.transfer(p6.address, amount_staked*3, {'from':account})
+
     p2_balance_before = msc_token.balanceOf(p2.address)
     print(f"p2_msc_balance_before:{p2_balance_before}")
     card_game.startGame({'from':account})
@@ -54,31 +56,37 @@ def test_bet_money(amount_staked):
     owner_after_balance = msc_token.balanceOf(account.address)
     print(f"owner_balance_after:{owner_after_balance}")
     card_game_balance_after = msc_token.balanceOf(card_game.address)
-    
-    
-    #card_game.betMoney(amount_staked*0.3, msc_token.address, {'from':p1})
-    #print(amount_staked)
-    msc_token.approve(card_game.address, msc_token.balanceOf(p2.address), {'from':p2.address})  # Basically, if user have to give the right(approve) this contract to join.(transferFrom require it)
+
+    msc_token.approve(card_game.address, msc_token.balanceOf(p2.address), {'from':p2})  # Basically, if user have to give the right(approve) this contract to join.(transferFrom require it)
     card_game.betMoney(amount_staked*0.6, msc_token.address, {'from':p2})
     p2_after_balance = msc_token.balanceOf(p2.address)
     print(f"p2_balance_after:{p2_after_balance}")
     card_game_total_balance = msc_token.balanceOf(card_game.address)
     print(f"card_game_total_balance:{card_game_total_balance}")
-    #card_game.betMoney(amount_staked*0.9, msc_token.address, {'from':p3})
+    card_game.repayBetToken(amount_staked*0.4, msc_token.address, {'from':p2})
+
+    msc_token.approve(card_game.address, msc_token.balanceOf(p4.address), {'from':p4}) # p4: 2*amount_staked balance
+    card_game.betMoney(amount_staked, msc_token.address, {'from':p4}) # p4: 1
+    msc_token.approve(card_game.address, msc_token.balanceOf(p6.address), {'from':p6}) # p6: 3
+    card_game.betMoney(amount_staked, msc_token.address, {'from':p6}) # p6: 2
     #Assert
-    assert card_game.wagerOfPlayer(msc_token.address, account.address) == 0.9*amount_staked  #success
-    #assert card_game.wagerOfPlayer(msc_token.address, p1.address) == amount_staked*0.3
-    assert card_game.wagerOfPlayer(msc_token.address, p2.address) == amount_staked*0.6
-    #assert card_game.wagerOfPlayer(msc_token.address, p3.address) == amount_staked*0.9
-    assert card_game.players(0) == account.address
-    assert card_game.players(1) == p2.address
+    assert card_game.players(msc_token.address, 2) == p4.address
+    assert card_game.players(msc_token.address, 3) == p6.address
+    card_game.repayBetToken(amount_staked, msc_token.address, {'from':p4}) # p4: 2
+    assert card_game.players(msc_token.address, 2) == p6.address
+    assert msc_token.balanceOf(p4.address) == amount_staked*2
+    
+    assert card_game.wagerOfPlayer(msc_token.address, account.address) == 0.9*amount_staked 
+    assert card_game.wagerOfPlayer(msc_token.address, p2.address) == amount_staked*0.6 - amount_staked*0.4
+    assert card_game.players(msc_token.address, 0) == account.address
+    assert card_game.players(msc_token.address,1) == p2.address
     a_c_allowance = msc_token.allowance(account.address, card_game.address)
     n = 16100000000000000000 #(20 - 3 - 0.9) * amount_staked
     assert a_c_allowance == n  # the rest amount of MSCToken owner which card_game can handle 
     t = 6.4*amount_staked  #(7 - 0.6)*amount_staked
     assert msc_token.allowance(p2.address, card_game.address) == t
     #assert msc_token.balanceOf(card_game.address) == (1 + 0.6)*amount_staked # acutual amount of token which card_game has
-    m = 6.4 * amount_staked  # (3 + 1 + 4 -1 - 0.6)*amount_staked
+    m = 6.8 * amount_staked  # (3 + 1 + 4 -1 - 0.6 + 0.4)*amount_staked
     assert msc_token.balanceOf(p2.address) == m
     return card_game, msc_token
     
@@ -105,7 +113,7 @@ def test_issue_tokens(amount_staked):
     # so we should get 2,000 msc_tokens in reward (deploy_mock(INITIAL_PRICE_FEED_VALUE=2000))
     # since the price of eth is $2,000
     assert msc_token.balanceOf(account.address) == starting_balance + 0.9*INITIAL_PRICE_FEED_VALUE
-    assert msc_token.balanceOf(p2.address) == p2_starting_balance + 0.6*INITIAL_PRICE_FEED_VALUE
+    assert msc_token.balanceOf(p2.address) == p2_starting_balance + 0.2*INITIAL_PRICE_FEED_VALUE # (0.6 - 0.4)*amount_staked
     return card_game, msc_token
 
 def test_get_winner(amount_staked):
@@ -116,19 +124,24 @@ def test_get_winner(amount_staked):
     p2 = get_account(index=2)
     card_game, msc_token = test_issue_tokens(amount_staked)
     fund_with_link(card_game)  # you have to pay to get the right to use requestRandomness in other server
-    tx = card_game.drawCards({'from':account})
+    tx = card_game.drawCards(msc_token.address,{'from':account})
     tx.wait(1)
-    print(f"owner_card_number:{card_game.playersCardNumber(account.address)}")
-    print(f"p2_card_number:{card_game.playersCardNumber(p2.address)}")
+    request_id = tx.events['RequestedRandomness']['requestId']
+    get_contract('vrf_coordinator').callBackWithRandomness(request_id, 12, card_game.address, {'from':account})
+    #time.sleep(60)
+    print(f"CompetedToken:{card_game.competedToken()}")
+    print(f"owner_card_number:{card_game.cardsNumber(0)}")
+    print(f"p2_card_number:{card_game.cardsNumber(1)}")
+    print(f"p6_card_number:{card_game.cardsNumber(2)}")
     print(f"Winner_before:{card_game.winner()}")
     winner = card_game.getWinner({'from':account})  # this returns transaction, not winner address
     print(f"Winner_after:{card_game.winner()}")
     assert card_game.winner() == p2.address
-    total = card_game.totalPot()
+    total = card_game.totalPot(msc_token.address)
     print(f"{total}")
     p2_balance_before = msc_token.balanceOf(p2.address)
     print(f"p2_balance_before:{p2_balance_before}")
-    card_game.endGame(msc_token.address,{'from':account})
+    card_game.endGame({'from':account})
     p2_balance_after = msc_token.balanceOf(p2.address)
     print(f"p2_balance_after:{p2_balance_after}")
     assert p2_balance_after == p2_balance_before + total

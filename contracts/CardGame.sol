@@ -39,14 +39,19 @@ contract CardGame is VRFConsumerBase, Ownable {
 
     // token address > priceFeed address
     mapping(address => address) public tokenPriceFeeds;
-    address[] public players;
+    //address[] public players;
+    // token address > player address list
+    mapping(address => address[]) public players;
     address[] public allowedTokens;
-    uint256 public totalPot = 0;
+    //uint256 public totalPot = 0;
+    // token address > totalBetValue
+    mapping(address => uint256) public totalPot;
     // player address > card number
-    mapping(address => uint256) public playersCardNumber;
+    //mapping(address => uint256) public playersCardNumber;
     uint256 public playerCounter = 0;
     uint256[] public cardsNumber;
     address public winner = address(0); // you can't use 'null' in solidity
+    address public competedToken = address(0);
 
     //function showMSCTokenAddress() public returns (address) {
     //return mscTokenAddress;
@@ -57,8 +62,8 @@ contract CardGame is VRFConsumerBase, Ownable {
     }
 
     function issueTokens(address _token) public onlyOwner {
-        for (uint256 index = 0; index < players.length; index++) {
-            address recipient = players[index];
+        for (uint256 index = 0; index < players[_token].length; index++) {
+            address recipient = players[_token][index];
             uint256 userTotalValue = getUserSingleTokenValue(recipient, _token);
             mscToken.transfer(recipient, userTotalValue); // send players MSCToken as a reward
         }
@@ -133,11 +138,45 @@ contract CardGame is VRFConsumerBase, Ownable {
     //return address(this).balance;
     //}
 
+    function removeFromPlayers(address _token, address _user) internal {
+        uint256 index;
+        for (uint256 i = 0; i < players[_token].length; i++) {
+            if (players[_token][i] == _user) {
+                index = i;
+                break;
+            }
+        }
+        for (uint256 e = index; e < players[_token].length - 1; e++) {
+            players[_token][e] = players[_token][e + 1];
+        }
+        //players[_token].length--;
+    }
+
+    function repayBetToken(uint256 _amount, address _token) public {
+        require(
+            game_state == GAME_STATE.OPEN || game_state == GAME_STATE.CLOSED,
+            "You can't get the refund after game started!"
+        );
+        require(
+            wagerOfPlayer[_token][msg.sender] >= _amount,
+            "You didn't bet token of the amount!"
+        );
+        IERC20(_token).transfer(msg.sender, _amount);
+        wagerOfPlayer[_token][msg.sender] =
+            wagerOfPlayer[_token][msg.sender] -
+            _amount;
+        totalPot[_token] = totalPot[_token] - _amount;
+        if (wagerOfPlayer[_token][msg.sender] <= 0) {
+            removeFromPlayers(_token, msg.sender);
+        }
+    }
+
     function startGame() public onlyOwner {
         require(
             game_state == GAME_STATE.CLOSED,
             "Can't start new game state yet!"
         );
+
         game_state = GAME_STATE.OPEN;
     }
 
@@ -145,15 +184,17 @@ contract CardGame is VRFConsumerBase, Ownable {
         require(_amount > 0, "A bet must be more than 0");
         require(tokenIsAllowed(_token), "This token is not allowed");
         require(
-            players.length < 5,
+            players[_token].length < 5,
             "Sorry, this game is already full. Please wait next game."
         );
+        require(game_state == GAME_STATE.OPEN, "You can't bet money while ");
         //require(
         //IERC20(_token).balanceOf(msg.sender) > 0,
         //"You don't have this token!"
         //);
         //msg.sender.transfer(_amount);
         //IERC20(_token).approve(address(this), _amount);
+
         if (_token == mscTokenAddress) {
             mscToken.transferFrom(msg.sender, address(this), _amount); // this 'msg.sender' must be owner of MSCToken, not third party address
             //mscToken.transfer(address(this), _amount); // transfer(toAddress, amount);  sender(who call this func(this contact)) sends amount of token to toAddress
@@ -164,21 +205,26 @@ contract CardGame is VRFConsumerBase, Ownable {
         wagerOfPlayer[_token][msg.sender] =
             wagerOfPlayer[_token][msg.sender] +
             _amount;
-        players.push(msg.sender);
-        totalPot = totalPot + _amount;
+        if (players[_token].length <= 0) {
+            totalPot[_token] = _amount;
+        } else {
+            totalPot[_token] = totalPot[_token] + _amount;
+        }
+        players[_token].push(msg.sender);
     }
 
-    function drawCards() public onlyOwner {
+    function drawCards(address _comp_token) public onlyOwner {
         game_state = GAME_STATE.CALCULATING_WINNER;
+        competedToken = _comp_token;
 
-        for (uint256 i; i < players.length; i++) {
+        for (uint256 i = 0; i < players[competedToken].length; i++) {
             bytes32 requestId = requestRandomness(keyHash, fee); // let fulfillRandomness do
             emit RequestedRandomness(requestId);
             playerCounter += 1;
         }
         //bytes32 requestId = requestRandomness(keyHash, fee);
         playerCounter = 0;
-        game_state = GAME_STATE.CLOSED;
+        //game_state = GAME_STATE.CLOSED;
     }
 
     function fulfillRandomness(bytes32 _requestId, uint256 _randomness)
@@ -191,27 +237,31 @@ contract CardGame is VRFConsumerBase, Ownable {
         );
         require(_randomness > 0, "random-not-found");
         uint256 cardNumber = _randomness % 14;
-        address player = players[playerCounter];
-        playersCardNumber[player] = cardNumber;
+        cardsNumber.push(cardNumber);
+        //address player = players[competedToken][playerCounter];
+        //playersCardNumber[player] = cardNumber;
     }
 
     function getWinner() public onlyOwner returns (address) {
-        require(game_state == GAME_STATE.CLOSED, "Game is not over yet!");
+        require(
+            game_state == GAME_STATE.CALCULATING_WINNER,
+            "Game is not over yet!"
+        );
 
-        for (uint256 i = 0; i < players.length; i++) {
-            uint256 cardNumber = playersCardNumber[players[i]];
-            cardsNumber.push(cardNumber);
-        }
+        //for (uint256 i = 0; i < players[competedToken].length; i++) {
+        //uint256 cardNumber = playersCardNumber[players[competedToken][i]];
+        //cardsNumber.push(cardNumber);
+        //}
         uint256 max = 0;
 
         for (uint256 c = 0; c < cardsNumber.length; c++) {
             if (cardsNumber[c] > max) {
                 max = cardsNumber[c];
-                winner = players[c];
+                winner = players[competedToken][c];
             } else if (cardsNumber[c] == max) {
                 uint256 judge = max % 2;
                 if (judge == 0) {
-                    winner = players[c];
+                    winner = players[competedToken][c];
                 } else if (judge == 1) {
                     continue;
                 }
@@ -220,24 +270,38 @@ contract CardGame is VRFConsumerBase, Ownable {
         return winner;
     }
 
-    function endGame(address _token) public onlyOwner {
-        require(game_state == GAME_STATE.CLOSED, "You aren't there yet!");
-        require(tokenIsAllowed(_token), "This token is not allowed");
+    function endGame() public onlyOwner {
+        require(
+            game_state == GAME_STATE.CALCULATING_WINNER,
+            "You aren't there yet!"
+        );
+        require(tokenIsAllowed(competedToken), "This token is not allowed");
         require(
             winner != address(0),
             "Still doesn't know which player is winner"
         );
         //IERC20(_token).transfer(msg.sender, totalPot);
-        IERC20(_token).transferFrom(msg.sender, winner, totalPot); // You can use transferFrom only when you sends tokens to user. It's impossibel the reverse
-        totalPot = 0;
+        IERC20(competedToken).transferFrom(
+            msg.sender,
+            winner,
+            totalPot[competedToken]
+        ); // You can use transferFrom only when you sends tokens to user. It's impossibel the reverse
+        totalPot[competedToken] = 0;
         //players = new address[];
-        for (uint256 index = 0; index < players.length; index++) {
-            address player = players[index];
-            wagerOfPlayer[_token][player] = 0;
-            playersCardNumber[player] = 0;
+        for (
+            uint256 index = 0;
+            index < players[competedToken].length;
+            index++
+        ) {
+            address player = players[competedToken][index];
+            wagerOfPlayer[competedToken][player] = 0;
+            //playersCardNumber[player] = 0;
         }
-        players = new address[](0);
+
+        players[competedToken] = new address[](0);
         cardsNumber = new uint256[](0);
         winner = address(0);
+        competedToken = address(0);
+        game_state = GAME_STATE.CLOSED;
     }
 }
