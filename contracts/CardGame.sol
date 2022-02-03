@@ -223,7 +223,7 @@ contract CardGame is VRFConsumerBase, Ownable {
             playerCounter += 1;
         }
         //bytes32 requestId = requestRandomness(keyHash, fee);
-        playerCounter = 0;
+        //playerCounter = 0;
         //game_state = GAME_STATE.CLOSED;
     }
 
@@ -297,7 +297,7 @@ contract CardGame is VRFConsumerBase, Ownable {
             wagerOfPlayer[competedToken][player] = 0;
             //playersCardNumber[player] = 0;
         }
-
+        playerCounter = 0;
         players[competedToken] = new address[](0);
         cardsNumber = new uint256[](0);
         winner = address(0);

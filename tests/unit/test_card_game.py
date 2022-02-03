@@ -122,12 +122,16 @@ def test_get_winner(amount_staked):
         pytest.skip('Only for local testing!')
     account = get_account()
     p2 = get_account(index=2)
+    p6 = get_account(index=6)
     card_game, msc_token = test_issue_tokens(amount_staked)
     fund_with_link(card_game)  # you have to pay to get the right to use requestRandomness in other server
     tx = card_game.drawCards(msc_token.address,{'from':account})
     tx.wait(1)
-    request_id = tx.events['RequestedRandomness']['requestId']
-    get_contract('vrf_coordinator').callBackWithRandomness(request_id, 12, card_game.address, {'from':account})
+    
+    # this arrange is needed when you pretend to use requestRandomness in local server.
+    for i in range(card_game.playerCounter()):
+        request_id = tx.events['RequestedRandomness']['requestId']
+        get_contract('vrf_coordinator').callBackWithRandomness(request_id, 11+i, card_game.address, {'from':account})
     #time.sleep(60)
     print(f"CompetedToken:{card_game.competedToken()}")
     print(f"owner_card_number:{card_game.cardsNumber(0)}")
@@ -136,12 +140,12 @@ def test_get_winner(amount_staked):
     print(f"Winner_before:{card_game.winner()}")
     winner = card_game.getWinner({'from':account})  # this returns transaction, not winner address
     print(f"Winner_after:{card_game.winner()}")
-    assert card_game.winner() == p2.address
+    assert card_game.winner() == p6.address
     total = card_game.totalPot(msc_token.address)
     print(f"{total}")
-    p2_balance_before = msc_token.balanceOf(p2.address)
-    print(f"p2_balance_before:{p2_balance_before}")
+    p6_balance_before = msc_token.balanceOf(p6.address)
+    print(f"p6_balance_before:{p6_balance_before}")
     card_game.endGame({'from':account})
-    p2_balance_after = msc_token.balanceOf(p2.address)
-    print(f"p2_balance_after:{p2_balance_after}")
-    assert p2_balance_after == p2_balance_before + total
+    p6_balance_after = msc_token.balanceOf(p6.address)
+    print(f"p6_balance_after:{p6_balance_after}")
+    assert p6_balance_after == p6_balance_before + total
