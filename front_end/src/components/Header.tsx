@@ -1,5 +1,8 @@
 import { useEthers } from "@usedapp/core"
 import { Button, makeStyles } from "@material-ui/core"
+import { useVariablesContracts } from "../hooks"
+import { constants } from "ethers"
+import React, { useState } from "react"
 
 
 const useStyles = makeStyles((theme) => ({
@@ -17,6 +20,11 @@ export const Header = () => {
 
     const isConnected = account !== undefined  // if account is undefined, it's connected.
 
+    //const [tokenAddress, setTokenAddress] = useState(constants.AddressZero)
+
+    const { gameState, gameStateError } = useVariablesContracts()
+
+
     return (
         <div className={classes.container}>
             <div>
@@ -28,6 +36,9 @@ export const Header = () => {
                         Connect
                     </Button>
                 )}
+            </div>
+            <div>
+                {gameState}
             </div>
         </div>
     )

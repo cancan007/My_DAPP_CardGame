@@ -56,6 +56,9 @@ contract CardGame is VRFConsumerBase, Ownable {
     //function showMSCTokenAddress() public returns (address) {
     //return mscTokenAddress;
     //}
+    //function returnPublicVariables() public view returns () {
+    //return (game_state);
+    //}
 
     function sendMSCToken(uint256 _amount) public onlyOwner {
         mscToken.transfer(msg.sender, _amount); // from contract_address to owner_address

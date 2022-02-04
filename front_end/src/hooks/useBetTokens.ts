@@ -39,7 +39,7 @@ export const useBetTokens = (tokenAddress: string) => {
             transactionName: "Approve ERC20 transfer"
         })
 
-    const approve = (amount: string) => {
+    const approveSetBet = (amount: string) => {
         setAmountToBet(amount)
         return approveErc20Send(cardGameAddress, amount)
     }
@@ -50,7 +50,7 @@ export const useBetTokens = (tokenAddress: string) => {
 
     const [amountToBet, setAmountToBet] = useState("0")
 
-    //useEffect
+    //useEffect: if this state is Success, betSend work
     useEffect(() => {
         if (approveErc20State.status === "Success") {
             // bet func
@@ -60,5 +60,5 @@ export const useBetTokens = (tokenAddress: string) => {
 
 
 
-    return { start, startState, approve, approveErc20State }
+    return { start, startState, approveSetBet, approveErc20State }
 }
