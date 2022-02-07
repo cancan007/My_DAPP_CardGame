@@ -9,6 +9,7 @@ import msc from "../msc.png"
 import eth from "../eth.png"
 import dai from "../dai.png"
 import { YourWallet } from "./yourWallet"  //because of index.ts
+import { makeStyles } from "@material-ui/core"
 
 
 export type Token = {
@@ -16,6 +17,14 @@ export type Token = {
     address: string,
     name: string
 }
+
+const useStyles = makeStyles((theme) => ({
+    title: {
+        color: theme.palette.common.white,
+        textAlign: "center",
+        padding: theme.spacing(4)
+    }
+}))
 
 
 export const Main = () => {
@@ -26,6 +35,7 @@ export const Main = () => {
 
     //send the brownie-config to our 'src' folder
     //send the build folder
+    const classes = useStyles()
     const { chainId, error } = useEthers()
     const networkName = chainId ? helperConfig[chainId] : "dev"  //if chainId exists, call helperConfig[chainId]. if not, call 'dev'
     const mscTokenAddress = chainId ? networkMapping[String(chainId)]["MSCToken"][0] : constants.AddressZero
@@ -51,5 +61,8 @@ export const Main = () => {
     ]
     console.log(chainId)
     console.log(networkName)
-    return (<YourWallet supportedTokens={supportedTokens} />)
+    return (<>
+        <h2 className={classes.title}>Dapp CardGame</h2>
+        <YourWallet supportedTokens={supportedTokens} />
+    </>)
 }

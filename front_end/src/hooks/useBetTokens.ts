@@ -25,14 +25,6 @@ export const useBetTokens = (tokenAddress: string) => {
     const erc20Interface = new utils.Interface(erc20ABI)
     const erc20Contract = new Contract(tokenAddress, erc20Interface)
 
-    const { send: startSend, state: startState } =
-        useContractFunction(cardGameContract, "startGame", {
-            transactionName: "Start Game!"
-        })
-
-    const start = () => {
-        return startSend()
-    }
 
     const { send: approveErc20Send, state: approveErc20State } =
         useContractFunction(erc20Contract, "approve", {
@@ -56,9 +48,17 @@ export const useBetTokens = (tokenAddress: string) => {
             // bet func
             betSend(amountToBet, tokenAddress)
         }
-    }, [approveErc20State])
+    }, [approveErc20State, amountToBet, tokenAddress])
 
+    const [state, setState] = useState(approveErc20State)
 
+    useEffect(() => {
+        if (approveErc20State.status === "Success") {
+            setState(betState)
+        } else {
+            setState(approveErc20State)
+        }
+    })
 
-    return { start, startState, approveSetBet, approveErc20State }
+    return { approveSetBet, state }
 }

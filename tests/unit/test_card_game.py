@@ -149,3 +149,14 @@ def test_get_winner(amount_staked):
     p6_balance_after = msc_token.balanceOf(p6.address)
     print(f"p6_balance_after:{p6_balance_after}")
     assert p6_balance_after == p6_balance_before + total
+    return card_game, msc_token
+
+def test_game_state(amount_staked):
+    #Arrange
+    if network.show_active() not in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
+        pytest.skip('Only for local testing!')
+    account = get_account()
+    card_game, msc_token = test_get_winner(amount_staked)
+    state = card_game.game_state()
+    print(state)
+    assert state == 1

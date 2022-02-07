@@ -1,8 +1,9 @@
 import { useEthers } from "@usedapp/core"
 import { Button, makeStyles } from "@material-ui/core"
-import { useVariablesContracts } from "../hooks"
+//import { useVariablesContracts } from "../hooks"
 import { constants } from "ethers"
 import React, { useState } from "react"
+import { GameStateButton } from "./GameStateButton"
 
 
 const useStyles = makeStyles((theme) => ({
@@ -22,7 +23,7 @@ export const Header = () => {
 
     //const [tokenAddress, setTokenAddress] = useState(constants.AddressZero)
 
-    const { gameState, gameStateError } = useVariablesContracts()
+    //const { gameState } = useVariablesContracts()
 
 
     return (
@@ -38,7 +39,7 @@ export const Header = () => {
                 )}
             </div>
             <div>
-                {gameState}
+                <GameStateButton />
             </div>
         </div>
     )

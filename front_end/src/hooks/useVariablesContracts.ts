@@ -8,7 +8,7 @@ import React, { useState, useEffect } from "react"
 
 
 export const useVariablesContracts = () => {
-    const { chainId } = useEthers()
+    const { account, chainId } = useEthers()
     const { abi } = CardGame
     const cardGameAddress = chainId ? networkMapping[String(chainId)]["CardGame"][0] : constants.AddressZero
     const cardGameInterface = new utils.Interface(abi)
@@ -19,12 +19,19 @@ export const useVariablesContracts = () => {
     //const erc20Contract = new Contract(tokenAddress, erc20Interface)
 
     const call = {
-        contract: cardGameContract,
-        method: "game_state"
-        args: []
+        //contract: cardGameContract,
+        abi: cardGameInterface,
+        address: cardGameAddress,
+        method: "game_state",
+        args: [account]
     }
 
-    const { gameState } = useContractCall(call)
+    const [gameState] = useContractCall({
+        abi: cardGameInterface,
+        address: cardGameAddress,
+        method: "game_state",
+        args: []
+    }) ?? []  // useContractCall is not valid, you gets empty list
 
     //const { gameState } = useContractFunction(cardGameContract, "game_state", {
     //transactionName: "View GAME_STATE"
