@@ -7,33 +7,19 @@ import { Contract } from "@ethersproject/contracts"
 import React, { useState, useEffect } from "react"
 
 
-export const useVariablesContracts = () => {
+export const useVariablesOfToken = (tokenAddress: string) => {
     const { account, chainId } = useEthers()
     const { abi } = CardGame
     const cardGameAddress = chainId ? networkMapping[String(chainId)]["CardGame"][0] : constants.AddressZero
     const cardGameInterface = new utils.Interface(abi)
     const cardGameContract = new Contract(cardGameAddress, cardGameInterface)
 
-    //const erc20ABI = ERC20.abi  // or {abi} = ERC20
-    //const erc20Interface = new utils.Interface(erc20ABI)
-    //const erc20Contract = new Contract(tokenAddress, erc20Interface)
-
-    const call = {
-        //contract: cardGameContract,
+    const [wagerOfPlayer] = useContractCall({
         abi: cardGameInterface,
         address: cardGameAddress,
-        method: "game_state",
-        args: [account]
-    }
+        method: "wagerOfPlayer",
+        args: [tokenAddress, account]
+    }) ?? []
 
-    const [gameState] = useContractCall({
-        abi: cardGameInterface,
-        address: cardGameAddress,
-        method: "game_state",
-        args: []
-    }) ?? []  // useContractCall is not valid, you gets empty list
-
-
-
-    return { gameState }
+    return { wagerOfPlayer }
 }

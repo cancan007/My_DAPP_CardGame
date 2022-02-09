@@ -58,7 +58,19 @@ export const useBetTokens = (tokenAddress: string) => {
         } else {
             setState(approveErc20State)
         }
+    }, [approveErc20State, betState])
+
+    // Repay
+    const { send: repayBetSend, state: repayBetState } = useContractFunction(cardGameContract, "repayBetToken", {
+        transactionName: "Repay ERC20 transfer"
     })
 
-    return { approveSetBet, state }
+    //const [amountToRepay, setAmountToRepay] = useState("0")
+
+    const repay = (amount: string) => {
+        //setAmountToRepay(amount)
+        return repayBetSend(amount, tokenAddress)
+    }
+
+    return { approveSetBet, state, repay, repayBetState }
 }

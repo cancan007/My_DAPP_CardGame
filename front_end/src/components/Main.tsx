@@ -10,6 +10,7 @@ import eth from "../eth.png"
 import dai from "../dai.png"
 import { YourWallet } from "./yourWallet"  //because of index.ts
 import { makeStyles } from "@material-ui/core"
+import { BetWallet } from "./betWallet"
 
 
 export type Token = {
@@ -64,5 +65,6 @@ export const Main = () => {
     return (<>
         <h2 className={classes.title}>Dapp CardGame</h2>
         <YourWallet supportedTokens={supportedTokens} />
+        <BetWallet supportedTokens={supportedTokens} />
     </>)
 }
