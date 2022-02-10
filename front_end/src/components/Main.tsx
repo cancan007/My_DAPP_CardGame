@@ -11,6 +11,9 @@ import dai from "../dai.png"
 import { YourWallet } from "./yourWallet"  //because of index.ts
 import { makeStyles } from "@material-ui/core"
 import { BetWallet } from "./betWallet"
+import { PlayersTable } from "./playersTable"
+import { TotalBetWallet } from "./totalBetWallet"
+import { WinnerSection } from "./winnerSection/WinnerSection"
 
 
 export type Token = {
@@ -66,5 +69,8 @@ export const Main = () => {
         <h2 className={classes.title}>Dapp CardGame</h2>
         <YourWallet supportedTokens={supportedTokens} />
         <BetWallet supportedTokens={supportedTokens} />
+        <TotalBetWallet supportedTokens={supportedTokens} />
+        <PlayersTable supportedTokens={supportedTokens} />
+        <WinnerSection supportedTokens={supportedTokens} />
     </>)
 }

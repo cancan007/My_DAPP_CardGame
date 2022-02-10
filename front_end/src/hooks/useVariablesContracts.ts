@@ -33,7 +33,21 @@ export const useVariablesContracts = () => {
         args: []
     }) ?? []  // useContractCall is not valid, you gets empty list
 
+    const [winner] = useContractCall({
+        abi: cardGameInterface,
+        address: cardGameAddress,
+        method: "winner",
+        args: []
+    }) ?? []
+
+    const [competedToken] = useContractCall({
+        abi: cardGameInterface,
+        address: cardGameAddress,
+        method: "competedToken",
+        args: []
+    }) ?? []
 
 
-    return { gameState }
+
+    return { gameState, winner, competedToken }
 }

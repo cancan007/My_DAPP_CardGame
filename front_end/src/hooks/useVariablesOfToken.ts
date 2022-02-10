@@ -21,5 +21,22 @@ export const useVariablesOfToken = (tokenAddress: string) => {
         args: [tokenAddress, account]
     }) ?? []
 
-    return { wagerOfPlayer }
+
+    //const players = new Array()
+
+    const [players] = useContractCall({
+        abi: cardGameInterface,
+        address: cardGameAddress,
+        method: "players",
+        args: [tokenAddress, 0]
+    }) ?? []
+
+    const [totalPot] = useContractCall({
+        abi: cardGameInterface,
+        address: cardGameAddress,
+        method: "totalPot",
+        args: [tokenAddress]
+    }) ?? []
+
+    return { wagerOfPlayer, players, totalPot }
 }

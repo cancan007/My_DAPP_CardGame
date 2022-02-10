@@ -1,0 +1,1 @@
+export { TotalBetWallet } from "./TotalBetWallet"
