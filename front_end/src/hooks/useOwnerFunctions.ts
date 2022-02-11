@@ -28,7 +28,7 @@ export const useOwnerFunctions = (tokenAddress: string) => {
         })
 
     const getWinner = () => {
-        return getWinnerSend()
+        return getWinnerSend(tokenAddress)
     }
 
     const { send: endGameSend, state: endGameState } =

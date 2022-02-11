@@ -127,20 +127,37 @@ def test_get_winner(amount_staked):
     fund_with_link(card_game)  # you have to pay to get the right to use requestRandomness in other server
     tx = card_game.drawCards(msc_token.address,{'from':account})
     tx.wait(1)
+    request_id = tx.events['RequestedRandomness']['requestId']
+    print(f"request_id: {request_id}")
+    get_contract('vrf_coordinator').callBackWithRandomness(request_id, 11, card_game.address, {'from':account})
+    
+    tx2 = card_game.drawCards(msc_token.address, {"from":p2})
+    tx2.wait(1)
+    request_id2 = tx2.events['RequestedRandomness']['requestId']
+    get_contract('vrf_coordinator').callBackWithRandomness(request_id2, 12, card_game.address, {'from':p2})
+    
+    tx3 =card_game.drawCards(msc_token.address, {"from":p6})
+    tx3.wait(1)
+    request_id3 = tx3.events['RequestedRandomness']['requestId']
+    get_contract('vrf_coordinator').callBackWithRandomness(request_id3, 13, card_game.address, {'from':p6})
     
     # this arrange is needed when you pretend to use requestRandomness in local server.
-    for i in range(card_game.playerCounter()):
-        request_id = tx.events['RequestedRandomness']['requestId']
-        get_contract('vrf_coordinator').callBackWithRandomness(request_id, 11+i, card_game.address, {'from':account})
-    #time.sleep(60)
+    #for i in range(card_game.playerCounter()):
+        #request_id = tx.events['RequestedRandomness']['requestId']
+        #get_contract('vrf_coordinator').callBackWithRandomness(request_id, 11+i, card_game.address, {'from':account})
+    #time.sleep(7)
     print(f"CompetedToken:{card_game.competedToken()}")
-    print(f"owner_card_number:{card_game.cardsNumber(0)}")
-    print(f"p2_card_number:{card_game.cardsNumber(1)}")
-    print(f"p6_card_number:{card_game.cardsNumber(2)}")
-    print(f"Winner_before:{card_game.winner()}")
-    winner = card_game.getWinner({'from':account})  # this returns transaction, not winner address
-    print(f"Winner_after:{card_game.winner()}")
-    assert card_game.winner() == p6.address
+    print(f"tokenToRandomness_owner:{card_game.tokenToRandomness()}")
+    print(f"owner_randomness: {card_game.randomness()}")
+    print(f"playersCardNumbers_owner: {card_game.playersCardNumber(msc_token.address, account.address)}")
+    print(f"playerCounter: {card_game.playerCounter(msc_token.address)}")
+    print(f"owner_card_number:{card_game.cardNumbers(msc_token.address, 0)}")
+    print(f"p2_card_number:{card_game.cardNumbers(msc_token.address, 1)}")
+    print(f"p6_card_number:{card_game.cardNumbers(msc_token.address, 2)}")
+    #print(f"Winner_before:{card_game.winner()}")
+    winner = card_game.getWinner(msc_token.address ,{'from':account})  # this returns transaction, not winner address
+    print(f"Winner_after:{card_game.winner(msc_token.address)}")
+    assert card_game.winner(msc_token.address) == p6.address
     total = card_game.totalPot(msc_token.address)
     print(f"{total}")
     p6_balance_before = msc_token.balanceOf(p6.address)

@@ -13,8 +13,8 @@ interface ShowWinnerProps {
 
 export const ShowWinner = ({ token }: ShowWinnerProps) => {
     const { image, address: tokenAddress, name } = token
-    const { winner, competedToken } = useVariablesContracts()
-    const { totalPot } = useVariablesOfToken(tokenAddress)
+    const { competedToken } = useVariablesContracts()
+    const { totalPot, winner } = useVariablesOfToken(tokenAddress)
     const formattedTokenBalance: number = totalPot ? parseFloat(formatUnits(totalPot, 18)) : 0
     const flag = competedToken === tokenAddress
 
