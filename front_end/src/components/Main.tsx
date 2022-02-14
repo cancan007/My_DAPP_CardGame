@@ -45,7 +45,9 @@ export const Main = () => {
     const mscTokenAddress = chainId ? networkMapping[String(chainId)]["MSCToken"][0] : constants.AddressZero
     const wethTokenAddress = chainId ? brownieConfig["networks"][networkName]["weth_token"] : constants.AddressZero
     const fauTokenAddress = chainId ? brownieConfig["networks"][networkName]["fau_token"] : constants.AddressZero
-
+    if (error) {
+        console.log(error)
+    }
     const supportedTokens: Array<Token> = [
         {
             image: msc,
