@@ -13,7 +13,8 @@ function App() {
       notifications: {
         expirationPeriod: 1000,
         checkInterval: 1000
-      }
+      },
+      multicallVersion: 2  // After adding this, I could solve RetryOnEmptyError of MetaMask!
     }}>
       <Header />
       <Container maxWidth="md">
