@@ -18,7 +18,7 @@ export const useOwnerFunctions = (tokenAddress: string) => {
             transactionName: "Draw cards"
         })
 
-    const drawCards = () => {
+    const drawCards = () => {  // this is not only for owner
         return drawCardsSend(tokenAddress)
     }
 
@@ -50,5 +50,5 @@ export const useOwnerFunctions = (tokenAddress: string) => {
         }
     }, [drawCardsState, getWinnerState])
 
-    return ({ drawCards, getWinner, endGame, state, endGameState })
+    return ({ drawCards, getWinner, endGame, state, drawCardsState, getWinnerState, endGameState })
 }

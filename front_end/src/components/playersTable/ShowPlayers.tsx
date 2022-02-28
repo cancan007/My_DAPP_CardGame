@@ -36,11 +36,13 @@ export const ShowPlayers = ({ token }: ShowPlayersProps) => {
                     <TableHead>
                         <TableRow>
                             <TableCell>{name} Player Address</TableCell>
+                            <TableCell>{name} Card Number</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         <TableRow>
                             <TableCell component="th" scope="row">{players}</TableCell>
+
                         </TableRow>
                     </TableBody>
                 </Table>

@@ -31,6 +31,85 @@ export const useVariablesOfToken = (tokenAddress: string) => {
         args: [tokenAddress, 0]
     }) ?? []
 
+
+    const [cards] = useContractCall({
+        abi: cardGameInterface,
+        address: cardGameAddress,
+        method: "playersCardNumber",
+        args: [tokenAddress, players]
+    }) ?? []
+    /*
+    async function useGetPlayers() {
+        const [pl1] = await useContractCall({
+            abi: cardGameInterface,
+            address: cardGameAddress,
+            method: "players",
+            args: [tokenAddress, 0]
+        }) ?? []
+
+        const [pl2] = await useContractCall({
+            abi: cardGameInterface,
+            address: cardGameAddress,
+            method: "players",
+            args: [tokenAddress, 1]
+        }) ?? []
+
+        const [pl3] = await useContractCall({
+            abi: cardGameInterface,
+            address: cardGameAddress,
+            method: "players",
+            args: [tokenAddress, 2]
+        }) ?? []
+
+        const [pl4] = await useContractCall({
+            abi: cardGameInterface,
+            address: cardGameAddress,
+            method: "players",
+            args: [tokenAddress, 3]
+        }) ?? []
+
+        const players = [pl1, pl2, pl3, pl4];
+
+        return players;
+    } */
+
+    //const players = pl1;
+    /*
+    async function useGetCards() {
+        const players = useGetPlayers();
+        const [c1] = await useContractCall({
+            abi: cardGameInterface,
+            address: cardGameAddress,
+            method: "playersCardNumber",
+            args: [tokenAddress, pl1]
+        }) ?? []
+
+        const [c2] = await useContractCall({
+            abi: cardGameInterface,
+            address: cardGameAddress,
+            method: "playersCardNumber",
+            args: [tokenAddress, pl2]
+        }) ?? []
+
+        const [c3] = await useContractCall({
+            abi: cardGameInterface,
+            address: cardGameAddress,
+            method: "playersCardNumber",
+            args: [tokenAddress, pl3]
+        }) ?? []
+
+        const [c4] = await useContractCall({
+            abi: cardGameInterface,
+            address: cardGameAddress,
+            method: "playersCardNumber",
+            args: [tokenAddress, pl4]
+        }) ?? []
+
+        const cards = [c1, c2, c3, c4];
+
+        return cards;
+    } */
+
     const [totalPot] = useContractCall({
         abi: cardGameInterface,
         address: cardGameAddress,

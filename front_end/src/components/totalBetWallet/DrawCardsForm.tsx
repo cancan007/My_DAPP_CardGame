@@ -9,20 +9,19 @@ interface DrawCardsFormProps {
 export const DrawCardsForm = ({ token }: DrawCardsFormProps) => {
     const { image, address: tokenAddress, name } = token
     const { gameState } = useVariablesContracts()
-    const { drawCards, getWinner, state } = useOwnerFunctions(tokenAddress)
+    const { drawCards, drawCardsState } = useOwnerFunctions(tokenAddress)
 
     const calculateWinner = () => {
-        drawCards()
-        return getWinner()
+        return drawCards()
     }
     const flag = gameState === 0 || 1
     const dflag = gameState === 1
-    const isMining = state === "Mining"
+    const isMining = drawCardsState.status === "Mining"
 
     return (
         <>
             <div>
-                {flag ? <Button disabled={dflag} color="primary" onClick={calculateWinner}>{isMining ? <CircularProgress size={26} /> : "Draw cards!"}</Button> : <Button color="secondary" disabled={true}>Calculating winner...</Button>}
+                {flag ? <Button color="primary" disabled={dflag} onClick={calculateWinner}>{isMining ? <CircularProgress size={26} /> : "Draw cards!"}</Button> : <Button color="secondary" disabled={true}>Calculating winner...</Button>}
             </div>
         </>
     )

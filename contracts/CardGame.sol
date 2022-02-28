@@ -242,7 +242,6 @@ contract CardGame is VRFConsumerBase, Ownable {
     }
 
     function drawCards(address _token) public {
-        game_state = GAME_STATE.CALCULATING_WINNER;
         tokenToRandomness = _token;
 
         bytes32 requestId = requestRandomness(keyHash, fee);
@@ -262,10 +261,7 @@ contract CardGame is VRFConsumerBase, Ownable {
         internal
         override
     {
-        require(
-            game_state == GAME_STATE.CALCULATING_WINNER,
-            "You aren't there yet!"
-        );
+        require(game_state == GAME_STATE.OPEN, "You aren't there yet!");
         require(_randomness > 0, "random-not-found");
         randomness = _randomness;
         uint256 cardNumber = _randomness % 14;
@@ -283,10 +279,11 @@ contract CardGame is VRFConsumerBase, Ownable {
     }
 
     function getWinner(address _token) public onlyOwner returns (address) {
-        require(
-            game_state == GAME_STATE.CALCULATING_WINNER,
-            "Game is not over yet!"
-        );
+        game_state = GAME_STATE.CALCULATING_WINNER; // this should be moved to getWinner
+        //require(
+        //game_state == GAME_STATE.CALCULATING_WINNER,
+        //"Game is not over yet!"
+        //);
         require(
             competedToken == address(0),
             "Before game is not over yet, owner have to pay reward to winner!"
